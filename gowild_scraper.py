@@ -53,7 +53,7 @@ def get_flight_html(origin, date, session, cjs, roundtrip, start_index=0, destin
         # Get schedule data for the route
         schedule_url = f"https://booking.flyfrontier.com/Flight/RetrieveSchedule?calendarSelectableDays.Origin={origin}&calendarSelectableDays.Destination={dest}"
         schedule_response = requests.Session().get(schedule_url, headers=header, cookies=cj) if cjs else requests.Session().get(schedule_url, headers=header)
-            
+
         if schedule_response.status_code == 200:
             schedule_data = schedule_response.json()
             disabled_dates = schedule_data['calendarSelectableDays']['disabledDates']
@@ -67,9 +67,11 @@ def get_flight_html(origin, date, session, cjs, roundtrip, start_index=0, destin
                 print(f"{i}. No flights available on {formatted_date} from {origin} to {dest}. Date skipped.")
                 continue
         else:
-            print(f"{i}. Problem accessing URL: code {schedule_response.status_code}\n url = " + schedule_url)
+            print(
+                f"{i}. Problem accessing URL: code {schedule_response.status_code}\n url = {schedule_url}"
+            )
 
-        
+
         # Mimic human-like behavior by adding delays between requests
         #delay = random.uniform(2, 5)  # Random delay between 2 to 5 seconds
         #time.sleep(delay)
@@ -89,7 +91,7 @@ def get_flight_html(origin, date, session, cjs, roundtrip, start_index=0, destin
                     roundtrip = 1 # reset var for the next dest
                 #f.write(dest + ",")
         else:
-            print(f"{i}. Problem accessing URL: code {response.status_code}\n url = " + url)
+            print(f"{i}. Problem accessing URL: code {response.status_code}\n url = {url}")
             break
     #f.close()
 
@@ -99,15 +101,17 @@ def extract_json(flight_data, origin, dest, date, roundtrip):
         flights = flight_data['journeys'][0]['flights']
     except (TypeError, KeyError):
         return 0
-    if (flights == None):
+    if flights is None:
         return 0
     go_wild_count = 0
 
     for flight in flights:
         if flight["isGoWildFareEnabled"]:
             if (go_wild_count == 0):
-                print(f"\n{'{} to {}: {}'.format(origin, dest, all_destinations[dest]) if roundtrip != -1 else '**Return flight'} available:")
-                #print(f"\n{'{origin} to {dest}: {all_destinations[dest]}' if roundtrip!=-1 else 'Return flight'} available:")
+                print(
+                    f"\n{f'{origin} to {dest}: {all_destinations[dest]}' if roundtrip != -1 else '**Return flight'} available:"
+                )
+                            #print(f"\n{'{origin} to {dest}: {all_destinations[dest]}' if roundtrip!=-1 else 'Return flight'} available:")
             go_wild_count+=1
             info = flight['legs'][0]
             print(f"flight {go_wild_count}. {flight['stopsText']}")
@@ -118,7 +122,7 @@ def extract_json(flight_data, origin, dest, date, roundtrip):
             # if go wild seats value is provided
             if flight['goWildFareSeatsRemaining'] is not None:
                 print(f"Go Wild: {flight['goWildFareSeatsRemaining']}\n")
-    
+
     if (go_wild_count == 0):
         print(f"No {'next day return ' if roundtrip==-1 else ''}flights from {origin} to {dest}")
         return 0
@@ -163,7 +167,7 @@ def main():
     input_dates = args.dates
     #roundtrip = args.roundtrip()
     cjs = args.cjs
-    fly_date = datetime.today() + timedelta(days=input_dates) # Searches date of today + input 
+    fly_date = datetime.now() + timedelta(days=input_dates)
     session = requests.Session()
     resume = args.resume
     roundtrip = args.roundtrip
